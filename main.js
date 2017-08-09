@@ -15,40 +15,21 @@ scene.add(light1);
 
 //MATERIAL
 
-// var material = new THREE.MeshBasicMaterial({
-//     color: 0xff0000,
-//     transparent: true,
-//     opacity: 0.5,
-//     wireframe: true
-// });
-
-// var material = new THREE.MeshNormalMaterial({
-//     color: 0xff0000,
-//     transparent: true,
-//     opacity: 1
-// });
-
-// var material = new THREE.MeshLambertMaterial({
-//     color: 0xf3ffe2,
-//     emissive: 0xff0000
-// });
-
-var material = new THREE.MeshPhongMaterial({
-    color: 0xf3ffe2,
-    specular: 0xff0000,
-    shininess: 100
-});
-
 // Combines Phong and Lambert materials
-var material = new THREE.MeshStandardMaterial({
-    color: 0xf3ffe2,
-    roughness: 0.5,
-    metalness: 0.5
+
+var uniforms = {
+    delta: {value: 0 }
+};
+
+var material = new THREE.ShaderMaterial({
+    uniforms: uniforms,
+    vertexShader: document.getElementById('vertexShader').textContent,
+    fragmentShader: document.getElementById('fragmentShader').textContent
 });
 
 // GEOMETRY
 
-var geometry = new THREE.BoxGeometry(100, 100, 100);
+var geometry = new THREE.BoxBufferGeometry(100, 100, 100, 10, 10, 10);
 var mesh = new THREE.Mesh(geometry, material);
 mesh.position.z = -1000;
 mesh.position.x = -100;
@@ -66,9 +47,24 @@ mesh3.rotation.x = -90 * Math.PI / 180;
 mesh3.position.y = -100;
 scene.add(mesh3);
 
+var vertexDisplacement = new Float32Array(geometry.attributes.position.count);
+for (var i = 0; i < vertexDisplacement.length; i += 1) {
+    vertexDisplacement[i] = Math.sin(i);
+}
+
+geometry.addAttribute('vertexDisplacement', new THREE.BufferAttribute(vertexDisplacement, 1));
+var delta = 0;
 requestAnimationFrame(render);
 function render() {
-    
+    delta += 0.1;
+
+    mesh.material.uniforms.delta.value = 0.5 + Math.sin(delta) * 0.5;
+
+    for (var i = 0; i < vertexDisplacement.length; i += 1) {
+        vertexDisplacement[i] = 0.5 + Math.sin(i * delta) * 0.25;
+    }
+    mesh.geometry.attributes.vertexDisplacement.needsUpdate = true;
+
     mesh.rotation.x += 0.01;
     mesh.rotation.y += 0.01;
 
